@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Stock Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary), #34495e);
+            color: white;
+            min-height: 100vh;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: #bdc3c7;
+            padding: 12px 20px;
+            margin: 2px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            width: 25px;
+            text-align: center;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .bg-medicine {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .bg-customer {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+        }
+        
+        .bg-sales {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+        }
+        
+        .bg-inventory {
+            background: linear-gradient(45deg, #43e97b, #38f9d7);
+            color: white;
+        }
+        
+        .table th {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--secondary);
+            border: none;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            border: none;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            border: none;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            border: none;
+        }
+        
+        .low-stock {
+            background-color: #fff3cd !important;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .expired {
+            background-color: #f8d7da !important;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .dashboard-header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .module-section {
+            display: none;
+        }
+        
+        .module-section.active {
+            display: block;
+        }
+        
+        .alert-low-stock {
+            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+            border: none;
+            color: #2d3436;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 5px;
+        }
+        
+        .search-box {
+            max-width: 300px;
+        }
+        
+        .sale-item, .purchase-item {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+        
+        .transaction-card {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .positive-amount {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .negative-amount {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .purchase-item-row {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        
+        .purchase-item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .amount-display {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-clinic-medical me-2"></i>
+                        MedStock Pro
+                    </h4>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-module="dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="medicines">
+                                <i class="fas fa-pills"></i> Medicines
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="customers">
+                                <i class="fas fa-users"></i> Customers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="suppliers">
+                                <i class="fas fa-truck"></i> Suppliers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="sales">
+                                <i class="fas fa-shopping-cart"></i> Sales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="purchases">
+                                <i class="fas fa-boxes"></i> Purchases
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="returns">
+                                <i class="fas fa-undo"></i> Returns
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="ledgers">
+                                <i class="fas fa-book"></i> Ledgers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-module="reports">
+                                <i class="fas fa-chart-bar"></i> Reports
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="module-section active">
+                    <!-- Dashboard content remains the same as before -->
+                    <div class="dashboard-header">
+                        <h3><i class="fas fa-tachometer-alt me-2"></i>Dashboard Overview</h3>
+                        <p class="text-muted">Welcome to Medicine Stock Management System</p>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-medicine stat-card">
+                                <i class="fas fa-pills"></i>
+                                <div class="number" id="total-medicines">0</div>
+                                <div>Total Medicines</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-customer stat-card">
+                                <i class="fas fa-users"></i>
+                                <div class="number" id="total-customers">0</div>
+                                <div>Total Customers</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-sales stat-card">
+                                <i class="fas fa-shopping-cart"></i>
+                                <div class="number" id="total-sales">0</div>
+                                <div>Today's Sales</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-inventory stat-card">
+                                <i class="fas fa-boxes"></i>
+                                <div class="number" id="low-stock">0</div>
+                                <div>Low Stock Items</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts and Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header bg-warning text-white">
+                                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alerts</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="low-stock-alerts">
+                                        <!-- Low stock items will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mt-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Recent Sales</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Sale ID</th>
+                                                <th>Customer</th>
+                                                <th>Amount</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recent-sales">
+                                            <!-- Recent sales will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary mb-2" id="quick-new-sale">
+                                            <i class="fas fa-plus me-2"></i>New Sale
+                                        </button>
+                                        <button class="btn btn-success mb-2" id="quick-new-purchase">
+                                            <i class="fas fa-cart-plus me-2"></i>New Purchase
+                                        </button>
+                                        <button class="btn btn-info mb-2" id="quick-add-medicine">
+                                            <i class="fas fa-pills me-2"></i>Add Medicine
+                                        </button>
+                                        <button class="btn btn-warning mb-2" id="quick-process-return">
+                                            <i class="fas fa-undo me-2"></i>Process Return
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mt-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Stock Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="stock-summary">
+                                        <!-- Stock summary will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medicines Section -->
+                <div id="medicines" class="module-section">
+                    <!-- Medicines content remains the same -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-pills me-2"></i>Medicine Management</h3>
+                        <div>
+                            <input type="text" class="form-control search-box d-inline-block me-2" id="medicine-search" placeholder="Search medicines...">
+                            <button class="btn btn-primary" id="add-medicine-btn">
+                                <i class="fas fa-plus me-2"></i>Add New Medicine
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Medicine List</h5>
+                            <span class="badge bg-light text-dark" id="medicine-count">0 medicines</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Medicine Name</th>
+                                            <th>Generic Name</th>
+                                            <th>Batch No.</th>
+                                            <th>Expiry Date</th>
+                                            <th>Stock Qty</th>
+                                            <th>Cost Price</th>
+                                            <th>Selling Price</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="medicines-table-body">
+                                        <!-- Medicines data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customers Section -->
+                <div id="customers" class="module-section">
+                    <!-- Customers content remains the same -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-users me-2"></i>Customer Management</h3>
+                        <div>
+                            <input type="text" class="form-control search-box d-inline-block me-2" id="customer-search" placeholder="Search customers...">
+                            <button class="btn btn-primary" id="add-customer-btn">
+                                <i class="fas fa-plus me-2"></i>Add New Customer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Customer List</h5>
+                            <span class="badge bg-light text-dark" id="customer-count">0 customers</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Address</th>
+                                            <th>Balance</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customers-table-body">
+                                        <!-- Customers data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suppliers Section -->
+                <div id="suppliers" class="module-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-truck me-2"></i>Supplier Management</h3>
+                        <button class="btn btn-primary" id="add-supplier-btn">
+                            <i class="fas fa-plus me-2"></i>Add New Supplier
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Address</th>
+                                            <th>Balance</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="suppliers-table-body">
+                                        <!-- Suppliers data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Section -->
+                <div id="sales" class="module-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-shopping-cart me-2"></i>Sales Management</h3>
+                        <button class="btn btn-primary" id="add-sale-btn">
+                            <i class="fas fa-plus me-2"></i>New Sale
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Sale ID</th>
+                                            <th>Customer</th>
+                                            <th>Date</th>
+                                            <th>Items</th>
+                                            <th>Total Amount</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales-table-body">
+                                        <!-- Sales data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchases Section -->
+                <div id="purchases" class="module-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-boxes me-2"></i>Purchase Management</h3>
+                        <button class="btn btn-primary" id="add-purchase-btn">
+                            <i class="fas fa-plus me-2"></i>New Purchase
+                        </button>
+                    </div>
+
+                    <!-- Purchase Entry Form -->
+                    <div class="card mb-4" id="purchase-entry-form" style="display: none;">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-cart-plus me-2"></i>New Purchase Entry</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="purchaseForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Supplier *</label>
+                                        <select class="form-select" id="purchase-supplier" required>
+                                            <option value="">Select Supplier</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Purchase Date *</label>
+                                        <input type="date" class="form-control" id="purchase-date" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Invoice Number</label>
+                                        <input type="text" class="form-control" id="purchase-invoice">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Payment Method</label>
+                                        <select class="form-select" id="purchase-payment">
+                                            <option value="Cash">Cash</option>
+                                            <option value="Card">Card</option>
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                            <option value="Credit">Credit</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <h5 class="mb-3">Purchase Items</h5>
+                                
+                                <div class="purchase-item-row">
+                                    <div class="row align-items-end">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Medicine *</label>
+                                            <select class="form-select purchase-medicine" required>
+                                                <option value="">Select Medicine</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Batch No. *</label>
+                                            <input type="text" class="form-control purchase-batch" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Expiry Date *</label>
+                                            <input type="date" class="form-control purchase-expiry" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label class="form-label">Quantity *</label>
+                                            <input type="number" class="form-control purchase-quantity" value="1" min="1" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label class="form-label">MRP *</label>
+                                            <input type="number" step="0.01" class="form-control purchase-mrp" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label class="form-label">Rate *</label>
+                                            <input type="number" step="0.01" class="form-control purchase-rate" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label class="form-label">Discount %</label>
+                                            <input type="number" step="0.01" class="form-control purchase-discount" value="0">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label class="form-label">Amount</label>
+                                            <input type="text" class="form-control purchase-amount" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="additional-purchase-items">
+                                    <!-- Additional items will be added here -->
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-purchase-item">
+                                            <i class="fas fa-plus me-1"></i> Add Another Item
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Total Quantity</label>
+                                            <input type="text" class="form-control" id="purchase-total-qty" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Total Amount</label>
+                                            <input type="text" class="form-control amount-display" id="purchase-total-amount" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12 text-end">
+                                        <button type="button" class="btn btn-secondary me-2" id="cancel-purchase">Cancel</button>
+                                        <button type="submit" class="btn btn-success">Save Purchase</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Purchase ID</th>
+                                            <th>Supplier</th>
+                                            <th>Date</th>
+                                            <th>Items</th>
+                                            <th>Total Amount</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="purchases-table-body">
+                                        <!-- Purchases data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other sections (Returns, Ledgers, Reports) remain the same -->
+                <!-- Returns Section -->
+                <div id="returns" class="module-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-undo me-2"></i>Returns Management</h3>
+                        <div>
+                            <button class="btn btn-warning me-2" id="add-sales-return-btn">
+                                <i class="fas fa-undo me-2"></i>Sales Return
+                            </button>
+                            <button class="btn btn-danger" id="add-purchase-return-btn">
+                                <i class="fas fa-undo me-2"></i>Purchase Return
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Return ID</th>
+                                            <th>Type</th>
+                                            <th>Reference</th>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Reason</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="returns-table-body">
+                                        <!-- Returns data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ledgers Section -->
+                <div id="ledgers" class="module-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-book me-2"></i>Ledgers</h3>
+                        <div>
+                            <button class="btn btn-primary me-2" id="view-customer-ledger-btn">
+                                <i class="fas fa-users me-2"></i>Customer Ledger
+                            </button>
+                            <button class="btn btn-success" id="view-supplier-ledger-btn">
+                                <i class="fas fa-truck me-2"></i>Supplier Ledger
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Customer Ledger</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="customer-ledger-content">
+                                        <!-- Customer ledger will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">Supplier Ledger</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="supplier-ledger-content">
+                                        <!-- Supplier ledger will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reports" class="module-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-chart-bar me-2"></i>Reports</h3>
+                        <div>
+                            <button class="btn btn-primary me-2" id="sales-report-btn">
+                                <i class="fas fa-shopping-cart me-2"></i>Sales Report
+                            </button>
+                            <button class="btn btn-success me-2" id="purchase-report-btn">
+                                <i class="fas fa-boxes me-2"></i>Purchase Report
+                            </button>
+                            <button class="btn btn-info" id="stock-report-btn">
+                                <i class="fas fa-pills me-2"></i>Stock Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0" id="report-title">Sales Report</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="report-content">
+                                        <!-- Report content will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals for Medicine, Customer, Supplier (same as before) -->
+    <!-- Add Medicine Modal -->
+    <div class="modal fade" id="addMedicineModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Add New Medicine</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMedicineForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Medicine Name *</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Generic Name</label>
+                                    <input type="text" class="form-control" name="generic_name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Batch Number *</label>
+                                    <input type="text" class="form-control" name="batch_number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Manufacturer</label>
+                                    <input type="text" class="form-control" name="manufacturer">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Expiry Date *</label>
+                                    <input type="date" class="form-control" name="expiry_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Stock Quantity *</label>
+                                    <input type="number" class="form-control" name="stock_quantity" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Cost Price *</label>
+                                    <input type="number" step="0.01" class="form-control" name="cost_price" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Selling Price *</label>
+                                    <input type="number" step="0.01" class="form-control" name="selling_price" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Reorder Level</label>
+                                    <input type="number" class="form-control" name="reorder_level" value="20">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-medicine-btn">Add Medicine</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal fade" id="addCustomerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Add New Customer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCustomerForm">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Opening Balance</label>
+                            <input type="number" step="0.01" class="form-control" name="opening_balance" value="0">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-customer-btn">Add Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Supplier Modal -->
+    <div class="modal fade" id="addSupplierModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Add New Supplier</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addSupplierForm">
+                        <div class="mb-3">
+                            <label class="form-label">Supplier Name *</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Opening Balance</label>
+                            <input type="number" step="0.01" class="form-control" name="opening_balance" value="0">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-supplier-btn">Add Supplier</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample data storage
+        let medicines = JSON.parse(localStorage.getItem('medicines')) || [];
+        let customers = JSON.parse(localStorage.getItem('customers')) || [];
+        let suppliers = JSON.parse(localStorage.getItem('suppliers')) || [];
+        let sales = JSON.parse(localStorage.getItem('sales')) || [];
+        let purchases = JSON.parse(localStorage.getItem('purchases')) || [];
+        let returns = JSON.parse(localStorage.getItem('returns')) || [];
+        let customerLedger = JSON.parse(localStorage.getItem('customerLedger')) || [];
+        let supplierLedger = JSON.parse(localStorage.getItem('supplierLedger')) || [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+            setupEventListeners();
+            loadDashboardData();
+            setupPurchaseForm();
+        });
+
+        function initializeData() {
+            // Add some sample data if empty
+            if (medicines.length === 0) {
+                medicines = [
+                    {
+                        id: 1,
+                        name: "Paracetamol 500mg",
+                        generic_name: "Paracetamol",
+                        batch_number: "BATCH001",
+                        manufacturer: "ABC Pharma",
+                        expiry_date: "2024-12-31",
+                        cost_price: 2.50,
+                        selling_price: 3.50,
+                        stock_quantity: 45,
+                        reorder_level: 20,
+                        min_stock_level: 10
+                    },
+                    {
+                        id: 2,
+                        name: "Amoxicillin 250mg",
+                        generic_name: "Amoxicillin",
+                        batch_number: "BATCH002",
+                        manufacturer: "XYZ Pharma",
+                        expiry_date: "2024-10-31",
+                        cost_price: 5.00,
+                        selling_price: 7.00,
+                        stock_quantity: 15,
+                        reorder_level: 15,
+                        min_stock_level: 5
+                    }
+                ];
+                localStorage.setItem('medicines', JSON.stringify(medicines));
+            }
+
+            if (customers.length === 0) {
+                customers = [
+                    {
+                        id: 1,
+                        name: "John Doe",
+                        phone: "1234567890",
+                        email: "john@example.com",
+                        address: "123 Main St",
+                        balance: 0
+                    }
+                ];
+                localStorage.setItem('customers', JSON.stringify(customers));
+            }
+
+            if (suppliers.length === 0) {
+                suppliers = [
+                    {
+                        id: 1,
+                        name: "Medi Supplies Ltd",
+                        phone: "9876543210",
+                        email: "supply@medisupplies.com",
+                        address: "456 Supplier Ave",
+                        balance: 0
+                    },
+                    {
+                        id: 2,
+                        name: "Pharma Distributors Inc",
+                        phone: "5551234567",
+                        email: "orders@pharmadist.com",
+                        address: "789 Business Park",
+                        balance: 0
+                    }
+                ];
+                localStorage.setItem('suppliers', JSON.stringify(suppliers));
+            }
+
+            if (sales.length === 0) {
+                sales = [
+                    {
+                        id: 1,
+                        customer_id: 1,
+                        customer_name: "John Doe",
+                        items: [
+                            { medicine_id: 1, name: "Paracetamol 500mg", quantity: 10, price: 3.50 }
+                        ],
+                        total_amount: 35.00,
+                        date: new Date().toISOString(),
+                        status: "Completed"
+                    }
+                ];
+                localStorage.setItem('sales', JSON.stringify(sales));
+            }
+
+            if (purchases.length === 0) {
+                purchases = [
+                    {
+                        id: 1,
+                        supplier_id: 1,
+                        supplier_name: "Medi Supplies Ltd",
+                        items: [
+                            { 
+                                medicine_id: 1, 
+                                name: "Paracetamol 500mg", 
+                                batch: "BATCH001",
+                                expiry: "2024-12-31",
+                                quantity: 50, 
+                                mrp: 4.00,
+                                rate: 2.50,
+                                discount: 0,
+                                amount: 125.00
+                            }
+                        ],
+                        total_amount: 125.00,
+                        date: new Date().toISOString(),
+                        status: "Completed",
+                        invoice_number: "INV-001",
+                        payment_method: "Cash"
+                    }
+                ];
+                localStorage.setItem('purchases', JSON.stringify(purchases));
+            }
+        }
+
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const moduleName = this.getAttribute('data-module');
+                    showModule(moduleName);
+                });
+            });
+
+            // Quick action buttons
+            document.getElementById('quick-new-sale').addEventListener('click', function() {
+                showModule('sales');
+            });
+            
+            document.getElementById('quick-new-purchase').addEventListener('click', function() {
+                showModule('purchases');
+                showPurchaseForm();
+            });
+            
+            document.getElementById('quick-add-medicine').addEventListener('click', function() {
+                showModule('medicines');
+                document.getElementById('add-medicine-btn').click();
+            });
+            
+            document.getElementById('quick-process-return').addEventListener('click', function() {
+                showModule('returns');
+            });
+
+            // Medicine buttons
+            document.getElementById('add-medicine-btn').addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('addMedicineModal'));
+                modal.show();
+            });
+            
+            document.getElementById('save-medicine-btn').addEventListener('click', addMedicine);
+
+            // Customer buttons
+            document.getElementById('add-customer-btn').addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('addCustomerModal'));
+                modal.show();
+            });
+            
+            document.getElementById('save-customer-btn').addEventListener('click', addCustomer);
+
+            // Supplier buttons
+            document.getElementById('add-supplier-btn').addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('addSupplierModal'));
+                modal.show();
+            });
+
+            document.getElementById('save-supplier-btn').addEventListener('click', addSupplier);
+
+            // Purchase buttons
+            document.getElementById('add-purchase-btn').addEventListener('click', function() {
+                showPurchaseForm();
+            });
+
+            document.getElementById('cancel-purchase').addEventListener('click', function() {
+                hidePurchaseForm();
+            });
+
+            // Return buttons
+            document.getElementById('add-sales-return-btn').addEventListener('click', function() {
+                createSampleSalesReturn();
+            });
+
+            document.getElementById('add-purchase-return-btn').addEventListener('click', function() {
+                createSamplePurchaseReturn();
+            });
+
+            // Ledger buttons
+            document.getElementById('view-customer-ledger-btn').addEventListener('click', function() {
+                loadCustomerLedger();
+            });
+
+            document.getElementById('view-supplier-ledger-btn').addEventListener('click', function() {
+                loadSupplierLedger();
+            });
+
+            // Report buttons
+            document.getElementById('sales-report-btn').addEventListener('click', function() {
+                loadSalesReport();
+            });
+
+            document.getElementById('purchase-report-btn').addEventListener('click', function() {
+                loadPurchaseReport();
+            });
+
+            document.getElementById('stock-report-btn').addEventListener('click', function() {
+                loadStockReport();
+            });
+
+            // Search functionality
+            document.getElementById('medicine-search').addEventListener('input', function() {
+                filterMedicines(this.value);
+            });
+            
+            document.getElementById('customer-search').addEventListener('input', function() {
+                filterCustomers(this.value);
+            });
+        }
+
+        function setupPurchaseForm() {
+            // Populate supplier dropdown
+            const supplierSelect = document.getElementById('purchase-supplier');
+            supplierSelect.innerHTML = '<option value="">Select Supplier</option>';
+            suppliers.forEach(supplier => {
+                supplierSelect.innerHTML += `<option value="${supplier.id}">${supplier.name}</option>`;
+            });
+
+            // Populate medicine dropdown
+            const medicineSelect = document.querySelector('.purchase-medicine');
+            medicineSelect.innerHTML = '<option value="">Select Medicine</option>';
+            medicines.forEach(medicine => {
+                medicineSelect.innerHTML += `<option value="${medicine.id}" data-cost="${medicine.cost_price}" data-selling="${medicine.selling_price}">${medicine.name}</option>`;
+            });
+
+            // Set today's date as default
+            document.getElementById('purchase-date').valueAsDate = new Date();
+
+            // Add event listener for adding purchase items
+            document.getElementById('add-purchase-item').addEventListener('click', addPurchaseItemRow);
+
+            // Add event listener for form submission
+            document.getElementById('purchaseForm').addEventListener('submit', savePurchase);
+
+            // Add calculation event listeners to first item row
+            setupPurchaseItemCalculations(document.querySelector('.purchase-item-row'));
+        }
+
+        function setupPurchaseItemCalculations(itemRow) {
+            const quantityInput = itemRow.querySelector('.purchase-quantity');
+            const rateInput = itemRow.querySelector('.purchase-rate');
+            const discountInput = itemRow.querySelector('.purchase-discount');
+            const amountInput = itemRow.querySelector('.purchase-amount');
+            const medicineSelect = itemRow.querySelector('.purchase-medicine');
+
+            // Calculate amount when inputs change
+            const calculateAmount = () => {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const rate = parseFloat(rateInput.value) || 0;
+                const discount = parseFloat(discountInput.value) || 0;
+                
+                const discountedRate = rate * (1 - discount / 100);
+                const amount = quantity * discountedRate;
+                
+                amountInput.value = amount.toFixed(2);
+                updatePurchaseTotals();
+            };
+
+            quantityInput.addEventListener('input', calculateAmount);
+            rateInput.addEventListener('input', calculateAmount);
+            discountInput.addEventListener('input', calculateAmount);
+
+            // Auto-fill rate when medicine is selected
+            medicineSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    const costPrice = selectedOption.getAttribute('data-cost');
+                    rateInput.value = costPrice;
+                    calculateAmount();
+                }
+            });
+        }
+
+        function addPurchaseItemRow() {
+            const itemContainer = document.getElementById('additional-purchase-items');
+            const newIndex = itemContainer.children.length + 1;
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'purchase-item-row';
+            newRow.innerHTML = `
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Medicine *</label>
+                        <select class="form-select purchase-medicine" required>
+                            <option value="">Select Medicine</option>
+                            ${medicines.map(med => `<option value="${med.id}" data-cost="${med.cost_price}" data-selling="${med.selling_price}">${med.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Batch No. *</label>
+                        <input type="text" class="form-control purchase-batch" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Expiry Date *</label>
+                        <input type="date" class="form-control purchase-expiry" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Quantity *</label>
+                        <input type="number" class="form-control purchase-quantity" value="1" min="1" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">MRP *</label>
+                        <input type="number" step="0.01" class="form-control purchase-mrp" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Rate *</label>
+                        <input type="number" step="0.01" class="form-control purchase-rate" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Discount %</label>
+                        <input type="number" step="0.01" class="form-control purchase-discount" value="0">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Amount</label>
+                        <input type="text" class="form-control purchase-amount" readonly>
+                        <button type="button" class="btn btn-sm btn-danger mt-1 remove-item" style="width: 100%;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            itemContainer.appendChild(newRow);
+            
+            // Setup calculations for new row
+            setupPurchaseItemCalculations(newRow);
+            
+            // Add remove functionality
+            newRow.querySelector('.remove-item').addEventListener('click', function() {
+                newRow.remove();
+                updatePurchaseTotals();
+            });
+        }
+
+        function updatePurchaseTotals() {
+            let totalQuantity = 0;
+            let totalAmount = 0;
+            
+            // Calculate totals from all item rows
+            document.querySelectorAll('.purchase-item-row').forEach(row => {
+                const quantity = parseFloat(row.querySelector('.purchase-quantity').value) || 0;
+                const amount = parseFloat(row.querySelector('.purchase-amount').value) || 0;
+                
+                totalQuantity += quantity;
+                totalAmount += amount;
+            });
+            
+            document.getElementById('purchase-total-qty').value = totalQuantity;
+            document.getElementById('purchase-total-amount').value = totalAmount.toFixed(2);
+        }
+
+        function showPurchaseForm() {
+            document.getElementById('purchase-entry-form').style.display = 'block';
+            // Reset form
+            document.getElementById('purchaseForm').reset();
+            document.getElementById('purchase-date').valueAsDate = new Date();
+            document.getElementById('additional-purchase-items').innerHTML = '';
+            updatePurchaseTotals();
+        }
+
+        function hidePurchaseForm() {
+            document.getElementById('purchase-entry-form').style.display = 'none';
+        }
+
+        function savePurchase(event) {
+            event.preventDefault();
+            
+            const supplierId = document.getElementById('purchase-supplier').value;
+            const purchaseDate = document.getElementById('purchase-date').value;
+            const invoiceNumber = document.getElementById('purchase-invoice').value;
+            const paymentMethod = document.getElementById('purchase-payment').value;
+            
+            if (!supplierId) {
+                alert('Please select a supplier');
+                return;
+            }
+            
+            // Collect purchase items
+            const purchaseItems = [];
+            let isValid = true;
+            
+            document.querySelectorAll('.purchase-item-row').forEach((row, index) => {
+                const medicineSelect = row.querySelector('.purchase-medicine');
+                const batch = row.querySelector('.purchase-batch').value;
+                const expiry = row.querySelector('.purchase-expiry').value;
+                const quantity = row.querySelector('.purchase-quantity').value;
+                const mrp = row.querySelector('.purchase-mrp').value;
+                const rate = row.querySelector('.purchase-rate').value;
+                const discount = row.querySelector('.purchase-discount').value;
+                const amount = row.querySelector('.purchase-amount').value;
+                
+                if (!medicineSelect.value || !batch || !expiry || !quantity || !mrp || !rate) {
+                    isValid = false;
+                    return;
+                }
+                
+                const medicineId = medicineSelect.value;
+                const medicineName = medicineSelect.options[medicineSelect.selectedIndex].text;
+                
+                purchaseItems.push({
+                    medicine_id: parseInt(medicineId),
+                    name: medicineName,
+                    batch: batch,
+                    expiry: expiry,
+                    quantity: parseInt(quantity),
+                    mrp: parseFloat(mrp),
+                    rate: parseFloat(rate),
+                    discount: parseFloat(discount) || 0,
+                    amount: parseFloat(amount)
+                });
+            });
+            
+            if (!isValid) {
+                alert('Please fill all required fields for all items');
+                return;
+            }
+            
+            if (purchaseItems.length === 0) {
+                alert('Please add at least one purchase item');
+                return;
+            }
+            
+            const supplier = suppliers.find(s => s.id == supplierId);
+            const totalAmount = purchaseItems.reduce((sum, item) => sum + item.amount, 0);
+            
+            // Create purchase record
+            const purchase = {
+                id: purchases.length > 0 ? Math.max(...purchases.map(p => p.id)) + 1 : 1,
+                supplier_id: parseInt(supplierId),
+                supplier_name: supplier.name,
+                items: purchaseItems,
+                total_amount: totalAmount,
+                date: purchaseDate,
+                status: "Completed",
+                invoice_number: invoiceNumber,
+                payment_method: paymentMethod
+            };
+            
+            purchases.push(purchase);
+            localStorage.setItem('purchases', JSON.stringify(purchases));
+            
+            // Update medicine stock
+            purchaseItems.forEach(item => {
+                const medicine = medicines.find(m => m.id === item.medicine_id);
+                if (medicine) {
+                    medicine.stock_quantity += item.quantity;
+                }
+            });
+            localStorage.setItem('medicines', JSON.stringify(medicines));
+            
+            alert('Purchase saved successfully!');
+            hidePurchaseForm();
+            loadPurchasesData();
+            loadDashboardData();
+        }
+
+        // Navigation
+        function showModule(moduleName) {
+            // Hide all modules
+            document.querySelectorAll('.module-section').forEach(module => {
+                module.classList.remove('active');
+            });
+            
+            // Show selected module
+            document.getElementById(moduleName).classList.add('active');
+            
+            // Update active nav link
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[data-module="${moduleName}"]`).classList.add('active');
+            
+            // Load module data
+            loadModuleData(moduleName);
+        }
+
+        // Load module-specific data
+        function loadModuleData(moduleName) {
+            switch(moduleName) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'medicines':
+                    loadMedicinesData();
+                    break;
+                case 'customers':
+                    loadCustomersData();
+                    break;
+                case 'suppliers':
+                    loadSuppliersData();
+                    break;
+                case 'sales':
+                    loadSalesData();
+                    break;
+                case 'purchases':
+                    loadPurchasesData();
+                    break;
+                case 'returns':
+                    loadReturnsData();
+                    break;
+                case 'ledgers':
+                    loadLedgersData();
+                    break;
+                case 'reports':
+                    loadReportsData();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        function loadDashboardData() {
+            // Update statistics
+            document.getElementById('total-medicines').textContent = medicines.length;
+            document.getElementById('total-customers').textContent = customers.length;
+            
+            const todaySales = sales.filter(s => {
+                const saleDate = new Date(s.date);
+                const today = new Date();
+                return saleDate.toDateString() === today.toDateString();
+            }).length;
+            document.getElementById('total-sales').textContent = todaySales;
+            
+            const lowStockCount = medicines.filter(m => m.stock_quantity <= m.reorder_level).length;
+            document.getElementById('low-stock').textContent = lowStockCount;
+
+            // Load low stock alerts
+            const lowStockAlerts = document.getElementById('low-stock-alerts');
+            const lowStockItems = medicines.filter(m => m.stock_quantity <= m.reorder_level);
+            
+            if (lowStockItems.length === 0) {
+                lowStockAlerts.innerHTML = '<div class="alert alert-success">All medicines are sufficiently stocked.</div>';
+            } else {
+                lowStockAlerts.innerHTML = lowStockItems.map(medicine => `
+                    <div class="alert alert-low-stock mb-2">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>${medicine.name}</strong> - Only ${medicine.stock_quantity} units left (Reorder level: ${medicine.reorder_level})
+                    </div>
+                `).join('');
+            }
+
+            // Load recent sales
+            const recentSales = document.getElementById('recent-sales');
+            const recentSalesData = sales.slice(-5).reverse();
+            recentSales.innerHTML = recentSalesData.map(sale => `
+                <tr>
+                    <td>#${sale.id}</td>
+                    <td>${sale.customer_name}</td>
+                    <td>$${sale.total_amount.toFixed(2)}</td>
+                    <td>${new Date(sale.date).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+
+            // Load stock summary
+            const stockSummary = document.getElementById('stock-summary');
+            const totalStockValue = medicines.reduce((sum, med) => sum + (med.stock_quantity * med.cost_price), 0);
+            const totalSellingValue = medicines.reduce((sum, med) => sum + (med.stock_quantity * med.selling_price), 0);
+            const outOfStockCount = medicines.filter(m => m.stock_quantity === 0).length;
+            
+            stockSummary.innerHTML = `
+                <div class="mb-2">
+                    <strong>Total Stock Value:</strong> $${totalStockValue.toFixed(2)}
+                </div>
+                <div class="mb-2">
+                    <strong>Potential Revenue:</strong> $${totalSellingValue.toFixed(2)}
+                </div>
+                <div class="mb-2">
+                    <strong>Total Medicines:</strong> ${medicines.length}
+                </div>
+                <div>
+                    <strong>Out of Stock:</strong> ${outOfStockCount}
+                </div>
+            `;
+        }
+
+        // Medicine functions
+        function loadMedicinesData() {
+            const tbody = document.getElementById('medicines-table-body');
+            document.getElementById('medicine-count').textContent = `${medicines.length} medicines`;
+            
+            tbody.innerHTML = medicines.map(medicine => {
+                const isLowStock = medicine.stock_quantity <= medicine.reorder_level;
+                const isExpired = new Date(medicine.expiry_date) < new Date();
+                const rowClass = isExpired ? 'expired' : (isLowStock ? 'low-stock' : '');
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${medicine.id}</td>
+                        <td>${medicine.name}</td>
+                        <td>${medicine.generic_name}</td>
+                        <td>${medicine.batch_number}</td>
+                        <td>${new Date(medicine.expiry_date).toLocaleDateString()}</td>
+                        <td>${medicine.stock_quantity}</td>
+                        <td>$${medicine.cost_price.toFixed(2)}</td>
+                        <td>$${medicine.selling_price.toFixed(2)}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-sm btn-warning" onclick="editMedicine(${medicine.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteMedicine(${medicine.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function addMedicine() {
+            const form = document.getElementById('addMedicineForm');
+            const formData = new FormData(form);
+            
+            // Basic validation
+            if (!formData.get('name') || !formData.get('batch_number') || !formData.get('expiry_date')) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const medicine = {
+                id: medicines.length > 0 ? Math.max(...medicines.map(m => m.id)) + 1 : 1,
+                name: formData.get('name'),
+                generic_name: formData.get('generic_name'),
+                batch_number: formData.get('batch_number'),
+                manufacturer: formData.get('manufacturer'),
+                expiry_date: formData.get('expiry_date'),
+                cost_price: parseFloat(formData.get('cost_price')),
+                selling_price: parseFloat(formData.get('selling_price')),
+                stock_quantity: parseInt(formData.get('stock_quantity')),
+                reorder_level: parseInt(formData.get('reorder_level')) || 20,
+                min_stock_level: 10
+            };
+            
+            medicines.push(medicine);
+            localStorage.setItem('medicines', JSON.stringify(medicines));
+            
+            // Close modal and reset form
+            bootstrap.Modal.getInstance(document.getElementById('addMedicineModal')).hide();
+            form.reset();
+            
+            // Reload data
+            loadMedicinesData();
+            loadDashboardData();
+            
+            alert('Medicine added successfully!');
+        }
+
+        // Customer functions
+        function loadCustomersData() {
+            const tbody = document.getElementById('customers-table-body');
+            document.getElementById('customer-count').textContent = `${customers.length} customers`;
+            
+            tbody.innerHTML = customers.map(customer => `
+                <tr>
+                    <td>${customer.id}</td>
+                    <td>${customer.name}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.address}</td>
+                    <td>$${(customer.balance || 0).toFixed(2)}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-warning" onclick="editCustomer(${customer.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${customer.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addCustomer() {
+            const form = document.getElementById('addCustomerForm');
+            const formData = new FormData(form);
+            
+            // Basic validation
+            if (!formData.get('name')) {
+                alert('Please fill in the customer name');
+                return;
+            }
+            
+            const customer = {
+                id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1,
+                name: formData.get('name'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                address: formData.get('address'),
+                balance: parseFloat(formData.get('opening_balance')) || 0
+            };
+            
+            customers.push(customer);
+            localStorage.setItem('customers', JSON.stringify(customers));
+            
+            // Close modal and reset form
+            bootstrap.Modal.getInstance(document.getElementById('addCustomerModal')).hide();
+            form.reset();
+            
+            // Reload data
+            loadCustomersData();
+            loadDashboardData();
+            
+            alert('Customer added successfully!');
+        }
+
+        // Supplier functions
+        function loadSuppliersData() {
+            const tbody = document.getElementById('suppliers-table-body');
+            tbody.innerHTML = suppliers.map(supplier => `
+                <tr>
+                    <td>${supplier.id}</td>
+                    <td>${supplier.name}</td>
+                    <td>${supplier.phone}</td>
+                    <td>${supplier.email}</td>
+                    <td>${supplier.address}</td>
+                    <td>$${(supplier.balance || 0).toFixed(2)}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-warning" onclick="editSupplier(${supplier.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSupplier(${supplier.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addSupplier() {
+            const form = document.getElementById('addSupplierForm');
+            const formData = new FormData(form);
+            
+            if (!formData.get('name')) {
+                alert('Please fill in the supplier name');
+                return;
+            }
+            
+            const supplier = {
+                id: suppliers.length > 0 ? Math.max(...suppliers.map(s => s.id)) + 1 : 1,
+                name: formData.get('name'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                address: formData.get('address'),
+                balance: parseFloat(formData.get('opening_balance')) || 0
+            };
+            
+            suppliers.push(supplier);
+            localStorage.setItem('suppliers', JSON.stringify(suppliers));
+            
+            bootstrap.Modal.getInstance(document.getElementById('addSupplierModal')).hide();
+            form.reset();
+            
+            loadSuppliersData();
+            alert('Supplier added successfully!');
+        }
+
+        // Purchase functions
+        function loadPurchasesData() {
+            const tbody = document.getElementById('purchases-table-body');
+            tbody.innerHTML = purchases.map(purchase => `
+                <tr>
+                    <td>#${purchase.id}</td>
+                    <td>${purchase.supplier_name}</td>
+                    <td>${new Date(purchase.date).toLocaleDateString()}</td>
+                    <td>${purchase.items.length} items</td>
+                    <td>$${purchase.total_amount.toFixed(2)}</td>
+                    <td><span class="badge bg-success">${purchase.status}</span></td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-info" onclick="viewPurchase(${purchase.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deletePurchase(${purchase.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Sales functions
+        function loadSalesData() {
+            const tbody = document.getElementById('sales-table-body');
+            tbody.innerHTML = sales.map(sale => `
+                <tr>
+                    <td>#${sale.id}</td>
+                    <td>${sale.customer_name}</td>
+                    <td>${new Date(sale.date).toLocaleDateString()}</td>
+                    <td>${sale.items.length} items</td>
+                    <td>$${sale.total_amount.toFixed(2)}</td>
+                    <td><span class="badge bg-success">${sale.status}</span></td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-info" onclick="viewSale(${sale.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSale(${sale.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function createSampleSale() {
+            const sale = {
+                id: sales.length > 0 ? Math.max(...sales.map(s => s.id)) + 1 : 1,
+                customer_id: 1,
+                customer_name: "John Doe",
+                items: [
+                    { medicine_id: 1, name: "Paracetamol 500mg", quantity: 5, price: 3.50 },
+                    { medicine_id: 2, name: "Amoxicillin 250mg", quantity: 3, price: 7.00 }
+                ],
+                total_amount: 38.50,
+                date: new Date().toISOString(),
+                status: "Completed"
+            };
+            
+            sales.push(sale);
+            localStorage.setItem('sales', JSON.stringify(sales));
+            
+            loadSalesData();
+            loadDashboardData();
+            alert('Sample sale created successfully!');
+        }
+
+        // Return functions
+        function loadReturnsData() {
+            const tbody = document.getElementById('returns-table-body');
+            tbody.innerHTML = returns.map(ret => `
+                <tr>
+                    <td>#${ret.id}</td>
+                    <td><span class="badge ${ret.type === 'sales' ? 'bg-warning' : 'bg-danger'}">${ret.type} Return</span></td>
+                    <td>#${ret.reference_id}</td>
+                    <td>${new Date(ret.date).toLocaleDateString()}</td>
+                    <td>$${ret.amount.toFixed(2)}</td>
+                    <td>${ret.reason}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-info" onclick="viewReturn(${ret.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function createSampleSalesReturn() {
+            const returnObj = {
+                id: returns.length > 0 ? Math.max(...returns.map(r => r.id)) + 1 : 1,
+                type: "sales",
+                reference_id: 1,
+                amount: 17.50,
+                reason: "Customer changed mind",
+                date: new Date().toISOString()
+            };
+            
+            returns.push(returnObj);
+            localStorage.setItem('returns', JSON.stringify(returns));
+            
+            loadReturnsData();
+            alert('Sample sales return created successfully!');
+        }
+
+        function createSamplePurchaseReturn() {
+            const returnObj = {
+                id: returns.length > 0 ? Math.max(...returns.map(r => r.id)) + 1 : 1,
+                type: "purchase",
+                reference_id: 1,
+                amount: 125.00,
+                reason: "Damaged goods",
+                date: new Date().toISOString()
+            };
+            
+            returns.push(returnObj);
+            localStorage.setItem('returns', JSON.stringify(returns));
+            
+            loadReturnsData();
+            alert('Sample purchase return created successfully!');
+        }
+
+        // Ledger functions
+        function loadLedgersData() {
+            loadCustomerLedger();
+            loadSupplierLedger();
+        }
+
+        function loadCustomerLedger() {
+            const content = document.getElementById('customer-ledger-content');
+            let ledgerHTML = '';
+            
+            customers.forEach(customer => {
+                const customerTransactions = sales.filter(s => s.customer_id === customer.id);
+                let totalBalance = customer.balance || 0;
+                
+                ledgerHTML += `
+                    <div class="card mb-3 transaction-card">
+                        <div class="card-body">
+                            <h6 class="card-title">${customer.name}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">Phone: ${customer.phone}</small><br>
+                                <strong>Current Balance: $${totalBalance.toFixed(2)}</strong>
+                            </p>
+                            <div class="transaction-list">
+                                ${customerTransactions.map(transaction => `
+                                    <div class="d-flex justify-content-between border-bottom py-2">
+                                        <div>
+                                            <small>Sale #${transaction.id}</small><br>
+                                            <small class="text-muted">${new Date(transaction.date).toLocaleDateString()}</small>
+                                        </div>
+                                        <div class="negative-amount">
+                                            -$${transaction.total_amount.toFixed(2)}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = ledgerHTML || '<p class="text-muted">No customer transactions found.</p>';
+        }
+
+        function loadSupplierLedger() {
+            const content = document.getElementById('supplier-ledger-content');
+            let ledgerHTML = '';
+            
+            suppliers.forEach(supplier => {
+                const supplierTransactions = purchases.filter(p => p.supplier_id === supplier.id);
+                let totalBalance = supplier.balance || 0;
+                
+                ledgerHTML += `
+                    <div class="card mb-3 transaction-card">
+                        <div class="card-body">
+                            <h6 class="card-title">${supplier.name}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">Phone: ${supplier.phone}</small><br>
+                                <strong>Current Balance: $${totalBalance.toFixed(2)}</strong>
+                            </p>
+                            <div class="transaction-list">
+                                ${supplierTransactions.map(transaction => `
+                                    <div class="d-flex justify-content-between border-bottom py-2">
+                                        <div>
+                                            <small>Purchase #${transaction.id}</small><br>
+                                            <small class="text-muted">${new Date(transaction.date).toLocaleDateString()}</small>
+                                        </div>
+                                        <div class="negative-amount">
+                                            -$${transaction.total_amount.toFixed(2)}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = ledgerHTML || '<p class="text-muted">No supplier transactions found.</p>';
+        }
+
+        // Report functions
+        function loadReportsData() {
+            loadSalesReport();
+        }
+
+        function loadSalesReport() {
+            document.getElementById('report-title').textContent = 'Sales Report';
+            const content = document.getElementById('report-content');
+            
+            const totalSales = sales.reduce((sum, sale) => sum + sale.total_amount, 0);
+            const totalItems = sales.reduce((sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+            
+            content.innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h4>${sales.length}</h4>
+                                <p>Total Sales</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h4>$${totalSales.toFixed(2)}</h4>
+                                <p>Total Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h4>${totalItems}</h4>
+                                <p>Total Items Sold</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Sale ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sales.map(sale => `
+                                <tr>
+                                    <td>#${sale.id}</td>
+                                    <td>${sale.customer_name}</td>
+                                    <td>${new Date(sale.date).toLocaleDateString()}</td>
+                                    <td>${sale.items.map(item => `${item.quantity} x ${item.name}`).join(', ')}</td>
+                                    <td>$${sale.total_amount.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function loadPurchaseReport() {
+            document.getElementById('report-title').textContent = 'Purchase Report';
+            const content = document.getElementById('report-content');
+            
+            const totalPurchases = purchases.reduce((sum, purchase) => sum + purchase.total_amount, 0);
+            const totalItems = purchases.reduce((sum, purchase) => sum + purchase.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+            
+            content.innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h4>${purchases.length}</h4>
+                                <p>Total Purchases</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h4>$${totalPurchases.toFixed(2)}</h4>
+                                <p>Total Cost</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h4>${totalItems}</h4>
+                                <p>Total Items Purchased</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Purchase ID</th>
+                                <th>Supplier</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${purchases.map(purchase => `
+                                <tr>
+                                    <td>#${purchase.id}</td>
+                                    <td>${purchase.supplier_name}</td>
+                                    <td>${new Date(purchase.date).toLocaleDateString()}</td>
+                                    <td>${purchase.items.map(item => `${item.quantity} x ${item.name}`).join(', ')}</td>
+                                    <td>$${purchase.total_amount.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function loadStockReport() {
+            document.getElementById('report-title').textContent = 'Stock Report';
+            const content = document.getElementById('report-content');
+            
+            const lowStockItems = medicines.filter(m => m.stock_quantity <= m.reorder_level);
+            const outOfStockItems = medicines.filter(m => m.stock_quantity === 0);
+            
+            content.innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h4>${medicines.length}</h4>
+                                <p>Total Medicines</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h4>${lowStockItems.length}</h4>
+                                <p>Low Stock</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h4>${outOfStockItems.length}</h4>
+                                <p>Out of Stock</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h4>$${medicines.reduce((sum, m) => sum + (m.stock_quantity * m.cost_price), 0).toFixed(2)}</h4>
+                                <p>Stock Value</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Batch No.</th>
+                                <th>Expiry Date</th>
+                                <th>Stock Qty</th>
+                                <th>Cost Price</th>
+                                <th>Stock Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${medicines.map(medicine => {
+                                const isLowStock = medicine.stock_quantity <= medicine.reorder_level;
+                                const isOutOfStock = medicine.stock_quantity === 0;
+                                const status = isOutOfStock ? 'Out of Stock' : (isLowStock ? 'Low Stock' : 'In Stock');
+                                const statusClass = isOutOfStock ? 'danger' : (isLowStock ? 'warning' : 'success');
+                                
+                                return `
+                                    <tr>
+                                        <td>${medicine.name}</td>
+                                        <td>${medicine.batch_number}</td>
+                                        <td>${new Date(medicine.expiry_date).toLocaleDateString()}</td>
+                                        <td>${medicine.stock_quantity}</td>
+                                        <td>$${medicine.cost_price.toFixed(2)}</td>
+                                        <td>$${(medicine.stock_quantity * medicine.cost_price).toFixed(2)}</td>
+                                        <td><span class="badge bg-${statusClass}">${status}</span></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function filterMedicines(searchTerm) {
+            const filteredMedicines = medicines.filter(medicine => 
+                medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                medicine.generic_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                medicine.batch_number.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            const tbody = document.getElementById('medicines-table-body');
+            tbody.innerHTML = filteredMedicines.map(medicine => {
+                const isLowStock = medicine.stock_quantity <= medicine.reorder_level;
+                const isExpired = new Date(medicine.expiry_date) < new Date();
+                const rowClass = isExpired ? 'expired' : (isLowStock ? 'low-stock' : '');
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${medicine.id}</td>
+                        <td>${medicine.name}</td>
+                        <td>${medicine.generic_name}</td>
+                        <td>${medicine.batch_number}</td>
+                        <td>${new Date(medicine.expiry_date).toLocaleDateString()}</td>
+                        <td>${medicine.stock_quantity}</td>
+                        <td>$${medicine.cost_price.toFixed(2)}</td>
+                        <td>$${medicine.selling_price.toFixed(2)}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-sm btn-warning" onclick="editMedicine(${medicine.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteMedicine(${medicine.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterCustomers(searchTerm) {
+            const filteredCustomers = customers.filter(customer => 
+                customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                customer.phone.includes(searchTerm) ||
+                customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            const tbody = document.getElementById('customers-table-body');
+            tbody.innerHTML = filteredCustomers.map(customer => `
+                <tr>
+                    <td>${customer.id}</td>
+                    <td>${customer.name}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.address}</td>
+                    <td>$${(customer.balance || 0).toFixed(2)}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-warning" onclick="editCustomer(${customer.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${customer.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editMedicine(id) {
+            alert(`Edit functionality for medicine ${id} would be implemented here`);
+        }
+
+        function deleteMedicine(id) {
+            if (confirm('Are you sure you want to delete this medicine?')) {
+                medicines = medicines.filter(m => m.id !== id);
+                localStorage.setItem('medicines', JSON.stringify(medicines));
+                loadMedicinesData();
+                loadDashboardData();
+                alert('Medicine deleted successfully!');
+            }
+        }
+
+        function editCustomer(id) {
+            alert(`Edit functionality for customer ${id} would be implemented here`);
+        }
+
+        function deleteCustomer(id) {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                customers = customers.filter(c => c.id !== id);
+                localStorage.setItem('customers', JSON.stringify(customers));
+                loadCustomersData();
+                loadDashboardData();
+                alert('Customer deleted successfully!');
+            }
+        }
+
+        function editSupplier(id) {
+            alert(`Edit functionality for supplier ${id} would be implemented here`);
+        }
+
+        function deleteSupplier(id) {
+            if (confirm('Are you sure you want to delete this supplier?')) {
+                suppliers = suppliers.filter(s => s.id !== id);
+                localStorage.setItem('suppliers', JSON.stringify(suppliers));
+                loadSuppliersData();
+                alert('Supplier deleted successfully!');
+            }
+        }
+
+        function viewSale(id) {
+            alert(`View details for sale ${id} would be implemented here`);
+        }
+
+        function deleteSale(id) {
+            if (confirm('Are you sure you want to delete this sale?')) {
+                sales = sales.filter(s => s.id !== id);
+                localStorage.setItem('sales', JSON.stringify(sales));
+                loadSalesData();
+                loadDashboardData();
+                alert('Sale deleted successfully!');
+            }
+        }
+
+        function viewPurchase(id) {
+            alert(`View details for purchase ${id} would be implemented here`);
+        }
+
+        function deletePurchase(id) {
+            if (confirm('Are you sure you want to delete this purchase?')) {
+                purchases = purchases.filter(p => p.id !== id);
+                localStorage.setItem('purchases', JSON.stringify(purchases));
+                loadPurchasesData();
+                alert('Purchase deleted successfully!');
+            }
+        }
+
+        function viewReturn(id) {
+            alert(`View details for return ${id} would be implemented here`);
+        }
+    </script>
+</body>
+</html>
